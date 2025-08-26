@@ -1,0 +1,38 @@
+from flask import Flask, send_file, request
+import requests
+import datetime
+
+app = Flask(__name__)
+
+# Replace with your webhook URL
+WEBHOOK_URL = "https://discord.com/api/webhooks/1395110346527735961/uOmR1jTQWJ5AY1usp1oTQF5Wuitf4IuAXNKJWwGFpC6dUy4QoPEURYE4evLsGxwlW1JR"
+
+# File you want to serve
+FILE_PATH = "raided_text.txt"
+
+@app.route('/download')
+def download_file():
+    # Gather basic request info
+    user_ip = request.remote_addr
+    user_agent = request.headers.get("User-Agent", "Unknown")
+    timestamp = datetime.datetime.utcnow().isoformat()
+
+    # Prepare data for webhook
+    data = {
+        "content": f"📥 File downloaded!\n"
+                   f"IP: {user_ip}\n"
+                   f"User-Agent: {user_agent}\n"
+                   f"Time (UTC): {timestamp}"
+    }
+
+    # Send to webhook
+    try:
+        requests.post(WEBHOOK_URL, json=data)
+    except Exception as e:
+        print(f"Webhook error: {e}")
+
+    # Send the file to the user
+    return send_file(FILE_PATH, as_attachment=True)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
